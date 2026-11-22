@@ -30,6 +30,7 @@ class ArticleController extends Controller
      */
     public function show(Article $article): View
     {
+        $article->increment('click_count');
         $article->load('category');
 
         return view('articles.show', compact('article'));

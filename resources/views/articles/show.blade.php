@@ -27,6 +27,14 @@
                             <span class="text-muted-foreground">&middot;</span>
                             <span class="text-xs text-muted-foreground">By {{ $article->author }}</span>
                         @endif
+                        <span class="text-muted-foreground">&middot;</span>
+                        <span class="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                            <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            {{ number_format($article->click_count ?? 0) }} {{ \Illuminate\Support\Str::plural('view', $article->click_count ?? 0) }}
+                        </span>
                     </div>
 
                     <h1 class="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">

@@ -122,6 +122,9 @@
                                             {{ $article->published_at->format('M d, Y') }}
                                         </span>
                                     @endif
+                                    <span class="text-xs text-muted-foreground">
+                                        &middot; {{ number_format($article->click_count ?? 0) }} {{ \Illuminate\Support\Str::plural('view', $article->click_count ?? 0) }}
+                                    </span>
                                 </div>
                                 <a href="{{ route('articles.show', $article) }}" class="block text-sm font-medium text-foreground hover:underline underline-offset-4">
                                     {{ $article->title }}

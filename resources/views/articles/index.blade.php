@@ -65,7 +65,11 @@
                         </div>
 
                         <div class="mt-5 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
-                            <span>{{ $article->author ?: 'Staff Writer' }}</span>
+                            <div class="flex items-center gap-2">
+                                <span>{{ $article->author ?: 'Staff Writer' }}</span>
+                                <span>&middot;</span>
+                                <span>{{ number_format($article->click_count ?? 0) }} {{ \Illuminate\Support\Str::plural('view', $article->click_count ?? 0) }}</span>
+                            </div>
                             <a href="{{ route('articles.show', $article) }}" class="font-medium text-foreground hover:underline underline-offset-4">
                                 Read more &rarr;
                             </a>

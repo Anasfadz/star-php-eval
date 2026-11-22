@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'category_id',
     'author',
     'status',
+    'click_count',
 ])]
 class Article extends Model
 {
@@ -31,6 +32,7 @@ class Article extends Model
     {
         return [
             'published_at' => 'datetime',
+            'click_count' => 'integer',
         ];
     }
 
