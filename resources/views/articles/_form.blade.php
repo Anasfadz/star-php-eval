@@ -72,6 +72,36 @@
         </div>
     </div>
 
+    <div class="space-y-2">
+        <label for="thumbnail" class="text-sm font-medium text-foreground">Thumbnail</label>
+        @if ($article?->thumbnail)
+            <div class="flex items-center gap-4 rounded-lg border border-border p-3">
+                <img
+                    src="{{ $article->thumbnail->url() }}"
+                    alt="{{ $article->title }}"
+                    class="h-16 w-24 rounded-md object-cover border border-border"
+                />
+                <div class="space-y-1 text-xs">
+                    <p class="font-medium text-foreground">{{ $article->thumbnail->file_name }}</p>
+                    <label class="inline-flex items-center gap-1.5 text-muted-foreground cursor-pointer">
+                        <input type="checkbox" name="remove_thumbnail" value="1" class="rounded border-input text-red-600 focus:ring-ring" />
+                        <span>Remove current thumbnail</span>
+                    </label>
+                </div>
+            </div>
+        @endif
+        <input
+            id="thumbnail"
+            name="thumbnail"
+            type="file"
+            accept="image/*"
+            class="flex w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-medium file:text-secondary-foreground hover:file:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        />
+        @error('thumbnail')
+            <p class="text-xs text-red-600">{{ $message }}</p>
+        @enderror
+    </div>
+
     <div class="space-y-1.5">
         <label for="summary" class="text-sm font-medium text-foreground">Summary</label>
         <x-ui.input

@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -16,7 +17,7 @@ class ArticleController extends Controller
      */
     public function index(): View
     {
-        $articles = Article::with('category')
+        $articles = Article::with(['category', 'thumbnail'])
             ->where('status', 'published')
             ->latest('published_at')
             ->latest('id')
@@ -31,7 +32,7 @@ class ArticleController extends Controller
     public function show(Article $article): View
     {
         $article->increment('click_count');
-        $article->load('category');
+        $article->load(['category', 'thumbnail']);
 
         return view('articles.show', compact('article'));
     }
@@ -52,13 +53,16 @@ class ArticleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validateArticle($request);
+        unset($validated['thumbnail']);
 
-        Article::create([
+        $article = Article::create([
             ...$validated,
             'author' => $validated['author'] ?: $request->user()->name,
             'permalink' => Str::slug($validated['title']).'-'.Str::lower(Str::random(6)),
             'published_at' => $validated['status'] === 'published' ? now() : null,
         ]);
+
+        $this->syncThumbnail($request, $article);
 
         return redirect()
             ->route('dashboard')
@@ -70,6 +74,7 @@ class ArticleController extends Controller
      */
     public function edit(Article $article): View
     {
+        $article->load('thumbnail');
         $categories = Category::orderBy('name')->get();
 
         return view('articles.edit', compact('article', 'categories'));
@@ -81,6 +86,7 @@ class ArticleController extends Controller
     public function update(Request $request, Article $article): RedirectResponse
     {
         $validated = $this->validateArticle($request);
+        unset($validated['thumbnail']);
 
         $publishedAt = match (true) {
             $validated['status'] === 'draft' => null,
@@ -93,6 +99,8 @@ class ArticleController extends Controller
             'author' => $validated['author'] ?: $request->user()->name,
             'published_at' => $publishedAt,
         ]);
+
+        $this->syncThumbnail($request, $article);
 
         return redirect()
             ->route('dashboard')
@@ -125,6 +133,41 @@ class ArticleController extends Controller
             'category_id' => ['required', 'exists:categories,id'],
             'status' => ['required', 'in:published,draft'],
             'author' => ['nullable', 'string', 'max:255'],
+            'thumbnail' => ['nullable', 'image', 'max:2048'],
+        ]);
+    }
+
+    /**
+     * Store, replace, or remove the article's thumbnail media.
+     */
+    private function syncThumbnail(Request $request, Article $article): void
+    {
+        $existing = $article->thumbnail;
+
+        if ($request->boolean('remove_thumbnail') && $existing) {
+            Storage::disk($existing->disk)->delete($existing->path);
+            $existing->delete();
+        }
+
+        if (! $request->hasFile('thumbnail')) {
+            return;
+        }
+
+        if ($existing) {
+            Storage::disk($existing->disk)->delete($existing->path);
+            $existing->delete();
+        }
+
+        $file = $request->file('thumbnail');
+        $path = $file->store((string) $article->id, 'article_media');
+
+        $article->media()->create([
+            'collection' => 'thumbnail',
+            'disk' => 'article_media',
+            'path' => $path,
+            'file_name' => $file->getClientOriginalName(),
+            'mime_type' => $file->getClientMimeType(),
+            'size' => $file->getSize(),
         ]);
     }
 }

@@ -5,6 +5,8 @@ namespace Database\Factories;
 use App\Models\Article;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -42,5 +44,37 @@ class ArticleFactory extends Factory
             'published_at' => null,
             'status' => 'draft',
         ]);
+    }
+
+    /**
+     * Download a sample thumbnail image from the web and attach it as media.
+     */
+    public function withThumbnail(): static
+    {
+        return $this->afterCreating(function (Article $article): void {
+            try {
+                $response = Http::timeout(10)->get("https://picsum.photos/seed/{$article->id}/800/450");
+
+                if (! $response->successful()) {
+                    return;
+                }
+
+                $contents = $response->body();
+                $path = "{$article->id}/thumbnail.jpg";
+
+                Storage::disk('article_media')->put($path, $contents);
+
+                $article->media()->create([
+                    'collection' => 'thumbnail',
+                    'disk' => 'article_media',
+                    'path' => $path,
+                    'file_name' => 'thumbnail.jpg',
+                    'mime_type' => $response->header('Content-Type') ?: 'image/jpeg',
+                    'size' => strlen($contents),
+                ]);
+            } catch (\Throwable) {
+                // Skip thumbnail if offline or request fails.
+            }
+        });
     }
 }

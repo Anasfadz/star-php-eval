@@ -44,6 +44,16 @@
 
                 <x-ui.separator />
 
+                @if ($article->thumbnail)
+                    <div class="overflow-hidden rounded-lg border border-border">
+                        <img
+                            src="{{ $article->thumbnail->url() }}"
+                            alt="{{ $article->title }}"
+                            class="max-h-96 w-full object-cover"
+                        />
+                    </div>
+                @endif
+
                 <div class="space-y-4 text-base leading-7 text-foreground/90">
                     @foreach (preg_split("/\r\n|\n|\r/", trim($article->body)) as $paragraph)
                         @if (filled($paragraph))

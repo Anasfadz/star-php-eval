@@ -40,31 +40,43 @@
                     class="article-card h-full"
                     data-title="{{ mb_strtolower($article->title) }}"
                 >
-                    <x-ui.card class="flex h-full flex-col justify-between p-5 transition-colors hover:border-foreground/25">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between gap-2">
-                                <x-ui.badge variant="secondary">
-                                    {{ $article->category?->name ?? 'Uncategorized' }}
-                                </x-ui.badge>
-                                @if ($article->published_at)
-                                    <time datetime="{{ $article->published_at->toIso8601String() }}" class="text-xs text-muted-foreground">
-                                        {{ $article->published_at->format('M d, Y') }}
-                                    </time>
-                                @endif
-                            </div>
-
-                            <h2 class="text-lg font-semibold leading-snug tracking-tight">
-                                <a href="{{ route('articles.show', $article) }}" class="hover:underline underline-offset-4">
-                                    {{ $article->title }}
+                    <x-ui.card class="flex h-full flex-col justify-between overflow-hidden transition-colors hover:border-foreground/25">
+                        <div>
+                            @if ($article->thumbnail)
+                                <a href="{{ route('articles.show', $article) }}" class="block overflow-hidden border-b border-border">
+                                    <img
+                                        src="{{ $article->thumbnail->url() }}"
+                                        alt="{{ $article->title }}"
+                                        class="aspect-video w-full object-cover transition-transform duration-300 hover:scale-[1.02]"
+                                    />
                                 </a>
-                            </h2>
+                            @endif
 
-                            <p class="text-sm leading-relaxed text-muted-foreground line-clamp-3">
-                                {{ $article->summary }}
-                            </p>
+                            <div class="space-y-3 p-5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <x-ui.badge variant="secondary">
+                                        {{ $article->category?->name ?? 'Uncategorized' }}
+                                    </x-ui.badge>
+                                    @if ($article->published_at)
+                                        <time datetime="{{ $article->published_at->toIso8601String() }}" class="text-xs text-muted-foreground">
+                                            {{ $article->published_at->format('M d, Y') }}
+                                        </time>
+                                    @endif
+                                </div>
+
+                                <h2 class="text-lg font-semibold leading-snug tracking-tight">
+                                    <a href="{{ route('articles.show', $article) }}" class="hover:underline underline-offset-4">
+                                        {{ $article->title }}
+                                    </a>
+                                </h2>
+
+                                <p class="text-sm leading-relaxed text-muted-foreground line-clamp-3">
+                                    {{ $article->summary }}
+                                </p>
+                            </div>
                         </div>
 
-                        <div class="mt-5 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
+                        <div class="mx-5 mb-5 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
                             <div class="flex items-center gap-2">
                                 <span>{{ $article->author ?: 'Staff Writer' }}</span>
                                 <span>&middot;</span>

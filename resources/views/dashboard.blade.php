@@ -2,7 +2,7 @@
     $publishedCount = \App\Models\Article::where('status', 'published')->count();
     $draftCount = \App\Models\Article::where('status', 'draft')->count();
     $categoryCount = \App\Models\Category::count();
-    $recentArticles = \App\Models\Article::with('category')
+    $recentArticles = \App\Models\Article::with(['category', 'thumbnail'])
         ->latest('published_at')
         ->latest('id')
         ->take(10)
@@ -109,7 +109,15 @@
                 <div class="divide-y divide-border">
                     @forelse ($recentArticles as $article)
                         <div class="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-                            <div class="space-y-1">
+                            <div class="flex items-center gap-3.5">
+                                @if ($article->thumbnail)
+                                    <img
+                                        src="{{ $article->thumbnail->url() }}"
+                                        alt="{{ $article->title }}"
+                                        class="h-12 w-16 shrink-0 rounded-md border border-border object-cover"
+                                    />
+                                @endif
+                                <div class="space-y-1">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <x-ui.badge variant="secondary">
                                         {{ $article->category?->name ?? 'Uncategorized' }}
@@ -129,6 +137,7 @@
                                 <a href="{{ route('articles.show', $article) }}" class="block text-sm font-medium text-foreground hover:underline underline-offset-4">
                                     {{ $article->title }}
                                 </a>
+                                </div>
                             </div>
 
                             <div class="flex items-center gap-2 shrink-0">
