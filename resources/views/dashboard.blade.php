@@ -5,7 +5,7 @@
     $recentArticles = \App\Models\Article::with('category')
         ->latest('published_at')
         ->latest('id')
-        ->take(5)
+        ->take(10)
         ->get();
 @endphp
 
@@ -17,15 +17,15 @@
                     {{ __('Dashboard') }}
                 </h2>
                 <p class="text-sm text-muted-foreground">
-                    Overview of your Star Media articles and categories.
+                    Manage your Star Media articles and categories.
                 </p>
             </div>
             <div class="flex items-center gap-2">
-                <x-ui.button variant="outline" :href="route('api.articles.index')">
-                    JSON API
+                <x-ui.button variant="outline" :href="route('articles.index')">
+                    View Site
                 </x-ui.button>
-                <x-ui.button variant="default" :href="route('articles.index')">
-                    View Articles
+                <x-ui.button variant="default" :href="route('articles.create')">
+                    + New Article
                 </x-ui.button>
             </div>
         </div>
@@ -33,6 +33,12 @@
 
     <div class="py-8">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
+            @if (session('status'))
+                <x-ui.card class="border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-900">
+                    {{ session('status') }}
+                </x-ui.card>
+            @endif
+
             {{-- Welcome Banner --}}
             <x-ui.card class="p-6">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -83,15 +89,15 @@
                 </x-ui.card>
             </div>
 
-            {{-- Recent Articles --}}
+            {{-- Articles Management List --}}
             <x-ui.card>
                 <div class="flex items-center justify-between p-5">
                     <div>
-                        <h3 class="text-base font-semibold text-foreground">Recent Articles</h3>
-                        <p class="text-sm text-muted-foreground">Latest 5 articles in the portal.</p>
+                        <h3 class="text-base font-semibold text-foreground">Articles</h3>
+                        <p class="text-sm text-muted-foreground">Create, edit, or delete articles.</p>
                     </div>
-                    <x-ui.button variant="outline" :href="route('articles.index')">
-                        View all
+                    <x-ui.button variant="default" :href="route('articles.create')">
+                        + New Article
                     </x-ui.button>
                 </div>
 
@@ -99,7 +105,7 @@
 
                 <div class="divide-y divide-border">
                     @forelse ($recentArticles as $article)
-                        <div class="flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
                             <div class="space-y-1">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <x-ui.badge variant="secondary">
@@ -118,13 +124,23 @@
                                     {{ $article->title }}
                                 </a>
                             </div>
-                            <x-ui.button variant="ghost" :href="route('articles.show', $article)" class="self-start sm:self-center">
-                                Read &rarr;
-                            </x-ui.button>
+
+                            <div class="flex items-center gap-2 shrink-0">
+                                <x-ui.button variant="outline" :href="route('articles.edit', $article)">
+                                    Edit
+                                </x-ui.button>
+                                <form method="POST" action="{{ route('articles.destroy', $article) }}" data-confirm-delete="{{ $article->title }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <x-ui.button type="submit" variant="ghost" class="text-red-600 hover:bg-red-50 hover:text-red-700">
+                                        Delete
+                                    </x-ui.button>
+                                </form>
+                            </div>
                         </div>
                     @empty
                         <div class="p-6 text-center text-sm text-muted-foreground">
-                            No articles found. Run <code class="font-mono text-foreground">php artisan db:seed</code> to populate sample data.
+                            No articles yet. Click <strong>+ New Article</strong> to create one.
                         </div>
                     @endforelse
                 </div>

@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Models\Category;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ArticleController extends Controller
@@ -29,5 +33,97 @@ class ArticleController extends Controller
         $article->load('category');
 
         return view('articles.show', compact('article'));
+    }
+
+    /**
+     * Show the form for creating a new article.
+     */
+    public function create(): View
+    {
+        $categories = Category::orderBy('name')->get();
+
+        return view('articles.create', compact('categories'));
+    }
+
+    /**
+     * Store a newly created article in storage.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $this->validateArticle($request);
+
+        Article::create([
+            ...$validated,
+            'author' => $validated['author'] ?: $request->user()->name,
+            'permalink' => Str::slug($validated['title']).'-'.Str::lower(Str::random(6)),
+            'published_at' => $validated['status'] === 'published' ? now() : null,
+        ]);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('status', 'Article created successfully.');
+    }
+
+    /**
+     * Show the form for editing the specified article.
+     */
+    public function edit(Article $article): View
+    {
+        $categories = Category::orderBy('name')->get();
+
+        return view('articles.edit', compact('article', 'categories'));
+    }
+
+    /**
+     * Update the specified article in storage.
+     */
+    public function update(Request $request, Article $article): RedirectResponse
+    {
+        $validated = $this->validateArticle($request);
+
+        $publishedAt = match (true) {
+            $validated['status'] === 'draft' => null,
+            $article->published_at === null => now(),
+            default => $article->published_at,
+        };
+
+        $article->update([
+            ...$validated,
+            'author' => $validated['author'] ?: $request->user()->name,
+            'published_at' => $publishedAt,
+        ]);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('status', 'Article updated successfully.');
+    }
+
+    /**
+     * Remove the specified article from storage.
+     */
+    public function destroy(Article $article): RedirectResponse
+    {
+        $article->delete();
+
+        return redirect()
+            ->route('dashboard')
+            ->with('status', 'Article deleted successfully.');
+    }
+
+    /**
+     * Validate article form input.
+     *
+     * @return array<string, mixed>
+     */
+    private function validateArticle(Request $request): array
+    {
+        return $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'summary' => ['required', 'string', 'max:255'],
+            'body' => ['required', 'string'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'status' => ['required', 'in:published,draft'],
+            'author' => ['nullable', 'string', 'max:255'],
+        ]);
     }
 }
