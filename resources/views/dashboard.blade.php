@@ -24,6 +24,9 @@
                 <x-ui.button variant="outline" :href="route('articles.index')">
                     View Site
                 </x-ui.button>
+                <x-ui.button variant="outline" :href="route('categories.index')">
+                    Categories
+                </x-ui.button>
                 <x-ui.button variant="default" :href="route('articles.create')">
                     + New Article
                 </x-ui.button>
